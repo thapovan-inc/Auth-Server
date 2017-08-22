@@ -1,0 +1,13 @@
+{
+    "name": "thapovan/authserver",
+    "description": "Authentication Server",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Anand R",
+            "email": "aramani@thapovan-inc.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
