@@ -17,23 +17,12 @@ Class AuthModel
       
       Connection::getInstance();
       $sqlQuery = ($isMob) ? "CALL auth.sp_get_user_by_mob(?)": "CALL auth.sp_get_user_by_email(?)";
-     // $spParams = array();
-     // array_push($spParams,$emailorMob);
       $spParams =  array("p_loginId"=>$emailorMob);
       $loginResult = Connection::$repoInstance->executeSelectQuery($sqlQuery,$spParams);
-
-      //return $loginResult;
       // get the hash password 
       $hashPassword =  AuthModel::getHashedPassword($password);
-      //print_r($loginResult);
-      
-    /*  if($loginResult["reqstat"] == 500)
-      {
-      	$loginResult["message"]= "Something went wrong. Please try again later";
-      }*/
+      $loginResult = array_shift($loginResult);
 
-     $loginResult = array_shift($loginResult);
-    
       // This will check for password correctness
       if(count($loginResult) > 0 && array_key_exists("password", $loginResult) && $hashPassword != $loginResult['password']){
       	unset($loginResult);
@@ -42,21 +31,9 @@ Class AuthModel
       	array_push($errorArray,array("field"=>"password","desc"=>"incorrect password"));
 	      $loginResult["reqstat"] = 400;
 	       $loginResult["parameters"] = $errorArray;	
-      }
-	  
-      // On success full login we will put an entry database using the WriteLoggedInUserLog method 
-      // This willl have the folowing information 
-      // email,ipaddress,useragent,source (mob/web) and login time .
-      // This also update the last_login column in native user login table 
-      if($loginResult["reqstat"]!=200){
-      	 //Log_DataLog::WriteLoggedInUserLog($logArray);
-      }
-      
+      }  
    	  }
       catch (Exception $ex){
-      //  $loginResult["reqstat"] = 500;
-   	 	//$loginResult["message"] = "Something went wrong. Please try again later";
-   	 	//SysLogger::logError($ex);
         throw $ex;
       }
  
@@ -122,7 +99,7 @@ Class AuthModel
    	$signUpResult = array();
    	try{
    	 	 Connection::getInstance();
-   	 	 $sqlQuery = "CALL create_user(?,?,?,?)";
+   	 	 $sqlQuery = "CALL sp_create_user(?,?,?,?)";
    	 	 $spParams =  array("p_email"=>$email,"mob_no"=>$mobNo,"passwd"=>AuthModel::getHashedPassword($password),"created_by"=>$doneBy);
    	 	 $result = Connection::$repoInstance->executeInsertUpdateQuery($sqlQuery,$spParams);
    	 	 
@@ -138,7 +115,11 @@ Class AuthModel
    	 }
    	
    }
-
+   // This method get the user detail by email id 
+   /*
+    * Params
+    *  $email => user email id 
+    */
    public function getUserDetailByEmail($email){
      try{
    	   	Connection::getInstance();
@@ -146,11 +127,42 @@ Class AuthModel
    	   	$spParams =  array("p_loginId"=>$email);
    	   	$result = Connection::$repoInstance->executeSelectQuery($sqlQuery,$spParams);;
         $result = array_shift($result);
+        if(isset($result)){
+          $result["reqstat"] = 200;
+        }
+        print_r($result);
         return $result;
      }
      catch(Exception $ex){
        throw $ex;
      }
+   }
+
+    // This method insert the data in table related to forgot password 
+   /*
+    * Params
+    *  $email => Email id for which password needs to change
+    * $token=> unique token for fogot password
+    * $userId => user unique user id
+    * $mobNo -> user mobile number
+    * $requestBy => request comes from 
+    */
+   public function forgotPassword($email,$token,$userId,$mobNo,$requestBy){
+   	 $isValidAction = array();
+   	try{
+   	 	 Connection::getInstance();
+   	 	 $sqlQuery = "CALL sp_manage_forgot_password(?,?,?,?,?)";
+   	 	 $spParams =  array("p_email"=>$email,"p_token"=>$token,"p_user_id"=>$userId,"p_mob_no"=>$mobNo,"p_request"=>$requestBy);
+   	 	 $isValidAction = Connection::$repoInstance->executeInsertUpdateQuery($sqlQuery,$spParams);	 
+   	 }
+   	 catch(Exception $ex){
+   		throw $ex;
+   	}
+   	return $isValidAction;
+   }
+
+   public function verifyToken($token,$email){
+     
    }
    
 }
