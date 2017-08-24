@@ -160,9 +160,47 @@ Class AuthModel
    	}
    	return $isValidAction;
    }
-
+    // This method will verify the token against the one generated in forgot password 
+   /* this will throw token mismatch,tocken expiry errors 
+    * Params
+    * $token=> unique token generated in forgot password
+    * $email => user email id 
+    */
    public function verifyToken($token,$email){
-     
+     $isValidToken = array();
+     try{
+        Connection::getInstance();
+        $sqlQuery = "CALL sp_verify_token(?,?)";
+        $spParams =  array("p_email"=>$email,"p_token"=>$token);
+        $isValidToken = Connection::$repoInstance->executeSelectQuery($sqlQuery,$spParams);
+        $isValidToken = array_shift($isValidToken);
+        return $isValidToken;
+     }
+     catch(Exception $ex){
+        throw $ex;
+     }
+   }
+   // This method will  reset the user password based 
+   /* this will throw token mismatch,tocken expiry errors 
+    * Params
+    * $email => user email id 
+    * $password => user password 
+    * $doneBy => request from 
+    */
+   public function resetPassword($email,$password,$doneBy){
+     $result = array();
+     try{
+        Connection::getInstance();
+        $sqlQuery = "CALL sp_reset_password(?,?,?)";
+        $password = AuthModel::getHashedPassword($password);
+        $spParams =  array("p_email"=>$email,"p_password"=>$password,"p_dobe_by"=>$doneBy);
+        $result = Connection::$repoInstance->executeInsertUpdateQuery($sqlQuery,$spParams); 
+        $result["message"] = "password reset succesfully";
+        return $result;
+     }
+     catch(Exception $ex){
+        throw $ex;
+     }
    }
    
 }

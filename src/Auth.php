@@ -59,10 +59,7 @@
              return $isValidLogin;
           }
           catch(Exception $ex){
-            $isValidLogin["reqstat"] = 500;
-			      $isValidLogin["message"] = "Something went wrong. Please try again later";
-            $isValidLogin["error"] =  $ex;
-            throw $isValidLogin;
+           throw $ex;
           }
           
       }
@@ -220,7 +217,8 @@
 		$result = array();
 		try{
 			$errorArray= array();
-			$errorArray = $this->validateRequiredField(array("token"=>$token,"emailId"=>$email,"password"=>$password,"confirmPassword"=>$confirmPassword));
+      $validator = new Validator(); 
+			$errorArray = $validator->validateRequiredField(array("token"=>$token,"emailId"=>$email,"password"=>$password,"confirmPassword"=>$confirmPassword));
 			$errorArray = array_filter($errorArray);
 			
 			if(!empty($errorArray)){
@@ -262,9 +260,12 @@
 			 $authModel = new AuthModel();
        // This will check token expiry and vlidate the token against user email .Token will expire in 
        //one day 
-       $result = $authModel->verifyToken($token,$emailId);
-			 $result = $accountModel->resetPassword($token,$password);
-			 return $isSuccess;
+       $result = $authModel->verifyToken($token,$email);
+       if($result["reqstat"] == 200){
+         $result = $authModel->resetPassword($email,$password,$doneBy);
+       }
+			
+			 return $result;
 		}
 		catch(Exception $ex){
 		  throw $ex;
