@@ -10,7 +10,7 @@ Method will take email id or mob ,password and done by as input.done by will be 
 <?php
   require_once __DIR__.'\Auth.php';
   $auth = new Auth();
-  $result = $auth->nativeLogin("anand981794@gmail.com","welcome@123",[{ip-address:"192.168.1.90","domain":"host.com"}]);
+  $result = $auth->nativeLogin("anand981794@gmail.com","welcome@123");
   //write your own business logic with the result set
   print_r($result);  
   ?>
@@ -25,7 +25,7 @@ This is a basic registration with email id ,mobile number and password as parame
 <?php
   require_once __DIR__.'\Auth.php';
   $auth = new Auth();
-  $result = $auth->nativeSignupAction("anand981794@gmal.com","9276091992","Welcome@123","Welcome@123",[{ip-address:"192.168.1.90","domain":"host.com"}]);
+  $result = $auth->nativeSignupAction("anand981794@gmal.com","9276091992","Welcome@123","Welcome@123",[{"ip-address":"192.168.1.90","domain":"host.com"}]);
  // write your own business logic with the result set
   print_r($result);  
   ?>
@@ -41,7 +41,7 @@ This method will take the email id as input and generate a token for password re
 <?php
   require_once __DIR__.'\Auth.php';
   $auth = new Auth();
-  $result = $auth->forgotPassword("anand981794@gmal.com",[{ip-address:"192.168.1.90","domain":"host.com"}]);
+  $result = $auth->forgotPassword("anand981794@gmal.com",[{"ip-address":"192.168.1.90","domain":"host.com"}]);
   //write your own business logic with the result set
   print_r($result);  
   ?>
@@ -57,7 +57,7 @@ This method will reset the password based on the token generated on forgot passw
 <?php
   require_once __DIR__.'\Auth.php';
   $auth = new Auth();
-  $result = $auth->resetPassword("599d830ece128","anand981794@gma.com","Abcdef@89","Abcdef@89",[{ip-address:"192.168.1.90","domain":"host.com"}]);
+  $result = $auth->resetPassword("599d830ece128","anand981794@gma.com","Abcdef@89","Abcdef@89",[{"ip-address":"192.168.1.90","domain":"host.com"}]);
   //write your own business logic with the result set
   print_r($result);  
   ?>
