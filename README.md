@@ -1,5 +1,10 @@
 # Auth-Server
  This source will give you genric method for nativelogin,regsitration ,forgot password and social login .Please refer wiki for more details.
+
+**Minimum Requirement**:
+
+PHP > 5.6
+MYSQL >= 5.7 
  
 # Native login
 
