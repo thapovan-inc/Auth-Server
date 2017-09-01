@@ -4,7 +4,8 @@
   Dscription: This class will deal with database connectivity and db operations 
   like select,insert e.t.c
 */
-require_once __DIR__."/Config.php";
+ require_once __DIR__."/Config.php";
+ require_once __DIR__."/Constants.php";
  class Connection{
      public static $repoInstance;
      public static $pdoObj;
@@ -26,14 +27,14 @@ require_once __DIR__."/Config.php";
         try{
              Config::getConfig();
              if(Connection::$pdoObj == null)  {
-                $dsn = "mysql:host=".Config::$config['dblocals']['host'].";dbname=".Config::$config['dblocals']['db'].";charset=".Config::$config['dblocals']['charset'];
+                $dsn = "mysql:host=".Config::$config[ApplicationConstants::$DBConfigRoot][ApplicationConstants::$Host].";port=".Config::$config[ApplicationConstants::$DBConfigRoot][ApplicationConstants::$Port].";dbname=".Config::$config[ApplicationConstants::$DBConfigRoot][ApplicationConstants::$DB].";charset=".Config::$config[ApplicationConstants::$DBConfigRoot][ApplicationConstants::$charset];
                 $opt = [
                             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                             PDO::ATTR_EMULATE_PREPARES   => false,
                 ];
-                $user = Config::$config['dblocals']['username'];
-                $pass = Config::$config['dblocals']['password'];
+                $user = Config::$config[ApplicationConstants::$DBConfigRoot][ApplicationConstants::$UserName];
+                $pass = Config::$config[ApplicationConstants::$DBConfigRoot][ApplicationConstants::$Password];  
                 Connection::$pdoObj = new PDO($dsn, $user, $pass, $opt); 
              }     
         }
@@ -54,7 +55,7 @@ require_once __DIR__."/Config.php";
         
           $stmt = Connection::$pdoObj->prepare($sqlQuery);
           $count = 1;
-          foreach ($paramArray as $key => $value) { 
+          foreach ($paramArray as $key => $value) {
              $stmt->bindParam($count++,$paramArray[$key]);
           }
          
@@ -84,7 +85,7 @@ require_once __DIR__."/Config.php";
           }
           $stmt->execute();
           $result = array();
-          $result["reqstat"] = 200;
+          $result[ApplicationConstants::$ReqStat] = 200;
           return $result;
      }
      catch(Exception $ex){

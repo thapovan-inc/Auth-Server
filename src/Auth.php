@@ -7,6 +7,7 @@
   require_once __DIR__."/Validator.php";
   require_once __DIR__."/AuthModel.php";
   require_once __DIR__."/Config.php";
+  require_once __DIR__.'/Constants.php';
   class Auth{
       /* Method for nativeLogin 
        * Desc : This method will do the basic validation and on success will invoke the method in 
@@ -14,9 +15,8 @@
        * Parmas
        * $emailorMob -> user email id or mobile number
        * $password -> user password 
-       * $doneBy -> changes comes from {ipaddress,email id, server info}
       */
-      public function nativeLogin($emailorMob,$password,$doneBy){
+      public function nativeLogin($emailorMob,$password){
        try{
              $isMobNo = false;
              $errorArray= array();
@@ -25,37 +25,37 @@
              $errorArray = array_filter($errorArray);
              // check for field empty 
              if(!empty($errorArray)){
-               $isValidLogin["message"] = 'required parameter missing';
-               $isValidLogin["reqstat"] = 400;
-               $isValidLogin["parameters"]= $errorArray;
+               $isValidLogin[ApplicationConstants::$Message] = ApplicationConstants::$RequiredParam;// 'required parameter missing';
+               $isValidLogin[ApplicationConstants::$ReqStat] = 400;
+               $isValidLogin[ApplicationConstants::$Parameters]= $errorArray;
                return $isValidLogin;
              }
              // check whether the given id is email or mobile number
              if(is_numeric($emailorMob)){
                $isMobNo = true;
                if(!$validator->isValidMob($emailorMob)){
-                  $isValidLogin["message"] = 'invalid';
-                  $isValidLogin["reqstat"] = 400;
+                  $isValidLogin[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+                  $isValidLogin[ApplicationConstants::$ReqStat] = 400;
                   $errorArray= array();
-                  array_push($errorArray,array("field"=>"MobNo","desc"=>"Invalid mobile no"));
+                  array_push($errorArray,array("field"=>"MobNo","desc"=>ApplicationConstants::$InvalidMob));
                   $isValidLogin["parameters"] = $errorArray;
                   return $isValidLogin;
                }
              }
              // validation for email 
              else if(!$validator->isValidEmail($emailorMob)){
-                $isValidLogin["message"] = 'invalid';
-                $isValidLogin["reqstat"] = 400;
+                $isValidLogin[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+                $isValidLogin[ApplicationConstants::$ReqStat] = 400;
                 $errorArray= array();
-                array_push($errorArray,array("field"=>"email","desc"=>"Invalid emailId"));
-                $isValidLogin["parameters"] = $errorArray;
+                array_push($errorArray,array("field"=>"Email","desc"=>ApplicationConstants::$InvalidEmail));
+                $isValidLogin[ApplicationConstants::$Parameters] = $errorArray;
                 return $isValidLogin;
              }
 
              // This section will invoke the method for business model and database
             // connectivity
              $authModel = new AuthModel();
-             $isValidLogin = $authModel->isValidLogin($emailorMob,$password,$isMobNo,$doneBy);
+             $isValidLogin = $authModel->isValidLogin($emailorMob,$password,$isMobNo);
              return $isValidLogin;
           }
           catch(Exception $ex){
@@ -83,52 +83,52 @@
 			        $errorArray = array_filter($errorArray);
               // check for field empty 
               if(!empty($errorArray)){
-				        $isValidSignUp["message"] = 'required parameter missing';
-				        $isValidSignUp["reqstat"] = 400;
-				        $isValidSignUp["parameters"]= $errorArray;
+				        $isValidSignUp[ApplicationConstants::$Message] = ApplicationConstants::$RequiredParam;//'required parameter missing';
+				        $isValidSignUp[ApplicationConstants::$ReqStat] = 400;
+				        $isValidSignUp[ApplicationConstants::$Parameters]= $errorArray;
                 return $isValidSignUp;
 			        }
               // Email validation
               if(!$validator->isValidEmail($email)){
-                $isValidSignUp["message"] = 'invalid';
-                $isValidSignUp["reqstat"] = 400;
+                $isValidSignUp[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+                $isValidSignUp[ApplicationConstants::$ReqStat] = 400;
                 $errorArray= array();
-                array_push($errorArray,array("field"=>"email","desc"=>"Invalid emailId"));
-                $isValidSignUp["parameters"] = $errorArray; 
+                array_push($errorArray,array("field"=>"email","desc"=>ApplicationConstants::$InvalidEmail));
+                $isValidSignUp[ApplicationConstants::$Parameters] = $errorArray; 
                 return $isValidSignUp;
               }
               // Mobile number validation 
               if(!$validator->isValidMob($mobNo)){
-                $isValidSignUp["message"] = 'invalid';
-                $isValidSignUp["reqstat"] = 400;
+                $isValidSignUp[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+                $isValidSignUp[ApplicationConstants::$ReqStat] = 400;
                 $errorArray= array();
-                array_push($errorArray,array("field"=>"MobNo","desc"=>"Invalid mobile no"));
-                $isValidSignUp["parameters"] = $errorArray;
+                array_push($errorArray,array("field"=>"MobNo","desc"=>ApplicationConstants::$InvalidMob));
+                $isValidSignUp[ApplicationConstants::$Parameters] = $errorArray;
                 return $isValidSignUp;
               }
               
               Config::getConfig();
-              $regExp  = strlen(Config::$config["regexp"]["pwd"]) > 2 ? Config::$config["regexp"]["pwd"] : "#.*^(?=.{6,20})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$#";
+              $regExp  = strlen(Config::$config[ApplicationConstants::$RegExpConfigRoot][ApplicationConstants::$PasswordCharect]) > 2 ? Config::$config[ApplicationConstants::$RegExpConfigRoot][ApplicationConstants::$PasswordCharect] : "#.*^(?=.{6,20})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$#";
               // password validation 
               if(!preg_match($regExp, $password)){
-				        $isValidSignUp["message"] = 'invalid';
-				        $isValidSignUp["reqstat"] = 400;
+				        $isValidSignUp[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+				        $isValidSignUp[ApplicationConstants::$ReqStat] = 400;
 				        $errorArray= array();
-				        array_push($errorArray,array("field"=>"password","desc"=>"Password length should be greater than 6 and it should contain at least 1 number,1 caps & 1 symbol"));
-			        	$isValidSignUp["parameters"] = $errorArray;
+				        array_push($errorArray,array("field"=>"password","desc"=>ApplicationConstants::$PasswordConstraints));
+			        	$isValidSignUp[ApplicationConstants::$Parameters] = $errorArray;
 			        	return $isValidSignUp;
 			        }
 
               // confirm password check 
               if(strcmp($password, $confirmPassword)!=0){
-				        $isValidSignUp["message"] = 'Confirm password and password doesnt match';
-				        $isValidSignUp["reqstat"] = 409;
+				        $isValidSignUp[ApplicationConstants::$Message] = ApplicationConstants::$ComparePassword;
+				        $isValidSignUp[ApplicationConstants::$ReqStat] = 409;
 				        return $isValidSignUp;
 			        }
               
               $authModel = new AuthModel();
               $isValidSignUp = $authModel->checkUserAlreadyRegistered($email,$mobNo);
-              if($isValidSignUp["reqstat"]!=200){
+              if($isValidSignUp[ApplicationConstants::$ReqStat]!=200){
                 return $isValidSignUp;
               }
 
@@ -160,38 +160,37 @@
           
             if(!empty($errorArray))
             {
-              $result["reqstat"] = 400;
-              $result["message"] = "required parameter missing";
+              $result[ApplicationConstants::$ReqStat] = 400;
+              $result[ApplicationConstants::$Message] = ApplicationConstants::$RequiredParam;//"required parameter missing";
               array_push($errorArray,array("field"=>"email","desc"=>"missing"));
-              $result["parameters"] = $errorArray;
+              $result[ApplicationConstants::$Parameters] = $errorArray;
               return $result;
             }
             
           // Email validation
             if(!$validator->isValidEmail($email))
             {
-              $result["message"] = 'invalid';
-              $result["reqstat"] = 400;
+              $result[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+              $result[ApplicationConstants::$ReqStat] = 400;
               $errorArray= array();
-              array_push($errorArray,array("field"=>"email","desc"=>"Invalid emailId"));
-              $result["parameters"] = $errorArray;
+              array_push($errorArray,array("field"=>"email","desc"=>ApplicationConstants::$InvalidEmail));
+              $result[ApplicationConstants::$Parameters] = $errorArray;
               return $result;
             }
             
              $authModel = new AuthModel();
              $accountExists = $authModel->getUserDetailByEmail($email);
-             print_r($accountExists);
             // This check for user email id already exists
-            if($accountExists["reqstat"]!= 200)
+            if($accountExists[ApplicationConstants::$ReqStat]!= 200)
             {
-              $result["message"] = 'Please provide valid user id';
-              $result["reqstat"] = 404;
+              $result[ApplicationConstants::$Message] = ApplicationConstants::$ValidUserId;
+              $result[ApplicationConstants::$ReqStat] = 404;
               return $result;
             }
 
             $token = uniqid();
             $result = $authModel->forgotPassword($email,$token,$accountExists["uuId"],$accountExists["mob_no"],$requestBy);
-            if($result["reqstat"] = 200)
+            if($result[ApplicationConstants::$ReqStat] = 200)
             {
               $result["token"] = $token;
               $result["emailId"] = $email;
@@ -222,20 +221,20 @@
 			$errorArray = array_filter($errorArray);
 			
 			if(!empty($errorArray)){
-				$result["message"] = 'required parameter missing';
-				$result["reqstat"] = 400;
-				$result["parameters"]= $errorArray;
+				$result[ApplicationConstants::$Message] = ApplicationConstants::$RequiredParam;//'required parameter missing';
+				$result[ApplicationConstants::$ReqStat] = 400;
+				$result[ApplicationConstants::$Parameters]= $errorArray;
 				return $isSuccess;
 			}
 
       // Email validation
       if(!$validator->isValidEmail($email))
         {
-              $result["message"] = 'invalid';
-              $result["reqstat"] = 400;
+              $result[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+              $result[ApplicationConstants::$ReqStat] = 400;
               $errorArray= array();
-              array_push($errorArray,array("field"=>"email","desc"=>"Invalid emailId"));
-              $result["parameters"] = $errorArray;
+              array_push($errorArray,array("field"=>"email","desc"=>ApplicationConstants::$InvalidEmail));
+              $result[ApplicationConstants::$Parameters] = $errorArray;
               return $result;
        }
 
@@ -243,17 +242,17 @@
       $regExp  = strlen(Config::$config["regexp"]["pwd"]) > 2 ? Config::$config["regexp"]["pwd"] : "#.*^(?=.{6,20})(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).*$#";
        // password validation 
       if(!preg_match($regExp, $password)){
-				  $result["message"] = 'invalid';
-				  $result["reqstat"] = 400;
+				  $result[ApplicationConstants::$Message] = ApplicationConstants::$Invalid;//'invalid';
+				  $result[ApplicationConstants::$ReqStat] = 400;
 				  $errorArray= array();
-			    array_push($errorArray,array("field"=>"password","desc"=>"Password length should be greater than 6 and it should contain at least 1 number,1 caps & 1 symbol"));
-			   	$result["parameters"] = $errorArray;
+			    array_push($errorArray,array("field"=>"password","desc"=>ApplicationConstants::$PasswordConstraints));
+			   	$result[ApplicationConstants::$Parameters] = $errorArray;
 			    return $result;
 		  }
 			
 			if(strcmp($password, $confirmPassword	)!=0){
-				$result["message"] = 'Confirm password and password doesnt match';
-				$result["reqstat"] = 409;
+				$result[ApplicationConstants::$Message] = ApplicationConstants::$ComparePassword;
+				$result[ApplicationConstants::$ReqStat] = 409;
 				return $result;
 			}
 
@@ -261,7 +260,7 @@
        // This will check token expiry and vlidate the token against user email .Token will expire in 
        //one day 
        $result = $authModel->verifyToken($token,$email);
-       if($result["reqstat"] == 200){
+       if($result[ApplicationConstants::$ReqStat] == 200){
          $result = $authModel->resetPassword($email,$password,$doneBy);
        }
 			
